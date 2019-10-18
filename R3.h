@@ -3,29 +3,29 @@
 #include <fstream>
 #define PI 3.1415926535897931
 
-//Êëàññ âåêòîðîâ {x, y, z}
+//Класс векторов {x, y, z}
 class R3 {
 public:
 	double x = 0, y = 0, z = 0;
 
 	R3 operator/(const double) const;
 	R3 operator+(const R3&) const;
-	double operator^(const R3&) const;    //ñêàëÿðíîå ïðîèçâåäåíèå  
-	R3 operator*(const R3&) const;         //âåêòîðíîå ïðîèçâåäåíèå
+	double operator^(const R3&) const;    //скалярное произведение  
+	R3 operator*(const R3&) const;         //векторное произведение
 	R3 operator*(const double) const;
 	double length() const;
 
-	friend std::istream & operator>> (std::istream &, R3 & );
-	friend std::ostream & operator<< (std::ostream &, const R3 &);
+	friend std::istream& operator>> (std::istream&, R3&);
+	friend std::ostream& operator<< (std::ostream&, const R3&);
 };
 
-//Ôóíêöèÿ, âîçâðàùàþùàÿ óãîë â ÐÀÄÈÀÍÀÕ ìåæäó âåêòîðàìè a è b
+//Функция, возвращающая угол в РАДИАНАХ между векторами a и b
 double phi(const R3& a, const R3& b);
 
-//ïåðåâîä ðàäèàí â ãðàäóñû
+//перевод радиан в градусы
 double rad_to_degrees(const double);
 
-//ñòðóêòóðà îïðåäåëÿþùàÿ áàçèñ èç òð¸õ âåêòîðîâ { a, b, c }
+//структура определяющая базис из трёх векторов { a, b, c }
 class matrix {
 public:
 	R3 a, b, c;
@@ -36,25 +36,25 @@ public:
 
 
 
-//Îïðåäåëÿåì äåëåíèå âåêòîðà íà ñêàëÿð
+//Определяем деление вектора на скаляр
 R3 R3::operator/(const double k) const
 {
 	return { x / k, y / k, z / k };
 }
 
-//Îïðåääåëÿåì ñóììó äâóõ âåêòîðîâ
+//Опредделяем сумму двух векторов
 R3 R3::operator+(const R3& r) const
 {
 	return { x + r.x, y + r.y, z + r.z };
 }
 
-//Îïðåäåëÿåì ñêàëÿðíîå ïðîèçâåäåíèå äâóõ âåêòîðîâ.
+//Определяем скалярное произведение двух векторов.
 double R3::operator^(const R3& r) const
 {
 	return x * r.x + y * r.y + z * r.z;
 }
 
-//Îïðåäåëÿåì âåêòîðíîå ïðîèçâåäåíèå äâóõ âåêòîðîâ.
+//Определяем векторное произведение двух векторов.
 R3 R3::operator*(const R3& r) const
 {
 	return {
@@ -64,19 +64,19 @@ R3 R3::operator*(const R3& r) const
 	};
 }
 
-//Îïðåäåëÿåì äîìíîæåíèå âåêòîðà íà ñêàëÿð
+//Определяем домножение вектора на скаляр
 R3 R3::operator*(const double k) const
 {
 	return { x * k, y * k, z * k };
 }
 
-//Äëèíà âåêòîðà.
+//Длина вектора.
 double R3::length() const
 {
 	return sqrt(x * x + y * y + z * z);
 }
 
-//Îïðåäåëÿåì ââîä âåêòîðà ÷åðåç ïîòîê ââîäà
+//Определяем ввод вектора через поток ввода
 std::istream& operator>> (std::istream& in, R3& r)
 {
 	in >> r.x >> r.y >> r.z;
@@ -96,7 +96,7 @@ double phi(const R3& a, const R3& b)
 
 double rad_to_degrees(const double rad)
 {
-	return (rad*180/PI);
+	return (rad * 180 / PI);
 }
 
 std::istream& operator>>(std::istream& in, matrix& m)
@@ -105,7 +105,7 @@ std::istream& operator>>(std::istream& in, matrix& m)
 	return in;
 }
 
-std::ostream& operator<<(std::ostream& out,const matrix& m)
+std::ostream& operator<<(std::ostream& out, const matrix& m)
 {
 	out << m.a << std::endl
 		<< m.b << std::endl
@@ -114,7 +114,7 @@ std::ostream& operator<<(std::ostream& out,const matrix& m)
 }
 
 
-//Ôóíêöèÿ, âîçâðàùàåò îðèåíòèðîâàííûé îáü¸ì ïàðàëëåëîãðàììà íà òð¸õ áàçèñíûõ âåêòîðàõ
+//Функция, возвращает ориентированный обьём параллелограмма на трёх базисных векторах
 double matrix::V() const
 {
 	return a ^ (b * c);
