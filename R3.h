@@ -1,5 +1,7 @@
 #pragma once
 #include <iostream>
+#include <fstream>
+#define PI 3.1415926535897931
 
 //Класс векторов {x, y, z}
 class R3 {
@@ -17,12 +19,19 @@ public:
 	friend std::ostream & operator<< (std::ostream &, const R3 &);
 };
 
+//Функция, возвращающая угол в РАДИАНАХ между векторами a и b
+double phi(const R3& a, const R3& b);
+
+//перевод радиан в градусы
+double rad_to_degrees(const double);
 
 //структура определяющая базис из трёх векторов { a, b, c }
 class matrix {
 public:
-	const R3 a, b, c;
+	R3 a, b, c;
 	double V() const;
+	friend std::istream& operator>>(std::istream&, matrix&);
+	friend std::ostream& operator<<(std::ostream&, const matrix&);
 };
 
 
@@ -68,15 +77,39 @@ double R3::length() const
 }
 
 //Определяем ввод вектора через поток ввода
-inline std::istream& operator>> (std::istream& in, R3& r)
+std::istream& operator>> (std::istream& in, R3& r)
 {
 	in >> r.x >> r.y >> r.z;
 	return in;
 }
 
-inline std::ostream& operator<<(std::ostream& out, const R3& r)
+std::ostream& operator<<(std::ostream& out, const R3& r)
 {
 	out << r.x << " " << r.y << " " << r.z;
+	return out;
+}
+
+double phi(const R3& a, const R3& b)
+{
+	return acos((a ^ b) / (a.length() * b.length()));
+}
+
+double rad_to_degrees(const double rad)
+{
+	return (rad*180/PI);
+}
+
+std::istream& operator>>(std::istream& in, matrix& m)
+{
+	in >> m.a >> m.b >> m.c;
+	return in;
+}
+
+std::ostream& operator<<(std::ostream& out,const matrix& m)
+{
+	out << m.a << std::endl
+		<< m.b << std::endl
+		<< m.c << std::endl;
 	return out;
 }
 
