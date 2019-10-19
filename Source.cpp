@@ -40,11 +40,7 @@ matrix _M_ = {
 int main() {
 	READ("C:\\Users\\yater\\source\\repos\\Reflection\\configuration.file");
 
-	_M_ = {
-	   (M.b * M.c) / M.V(),
-	   (M.c * M.a) / M.V(),
-	   (M.a * M.b) / M.V()
-	};
+	_M_ = M._M_();
 
 	R3 d = _M_.a * h + _M_.b * k + _M_.c * l;
 	double sin_theta = LYAMBDA * d.length();
@@ -52,11 +48,11 @@ int main() {
 		phi({ d.x, d.y,0 }, { 1, 0, 0 }) :
 		-phi({ d.x, d.y,0 }, { 1, 0, 0 });
 	double beta = asin((d.operator^({ 0,0,1 }) / d.length()));
-	cout << d << endl;
-	cout << rad_to_degrees(alpha) << " "
-		<< rad_to_degrees(beta) << endl;
+	cout << "d(hkl) : " << d << endl;
+	cout << "alpha : " << rad_to_degrees(alpha) << " degrees\nbeta : "
+		<< rad_to_degrees(beta) << " degrees " << endl;
 
-	cout << rad_to_degrees(asin(sin_theta)) << " degrees" << endl;
+	cout << "theta : " << rad_to_degrees(asin(sin_theta)) << " degrees" << endl;
  	return 0;
 }
 
