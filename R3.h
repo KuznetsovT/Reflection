@@ -25,7 +25,7 @@ public:
 
 	friend std::istream& operator>> (std::istream&, R3&);                //перегружаем оператор ввода 
 	friend std::ostream& operator<< (std::ostream&, const R3&);          //перегружаем оператор вывода
-	double operator[] (int el_num) {          //оператор вывода el_num - элемента вектора
+	double operator[] (const unsigned el_num) const {          //оператор вывода el_num - элемента вектора
 		switch (el_num) {
 		case 0: return x;
 		case 1: return y;
@@ -39,6 +39,18 @@ public:
 //Функция, возвращающая угол в РАДИАНАХ между векторами a и b
 double phi(const R3& a, const R3& b);
 
+//Функция, возвращает угол в сферических координатах равный углу поворота вектора в плоскости ху в РАДИАНАХ
+double alpha(const R3& r) {
+	return (r.y >= 0) ?  // в направлении tth
+		phi({ r.x, r.y, 0 }, { 1, 0, 0 }) :
+		-phi({ r.x, r.y, 0 }, { 1, 0, 0 });
+}
+
+//Функция, возвращает угол в сферических координатах, равный углу между вектором и осью z в РАДИАНАХ
+double beta(const R3& r) {
+	return acos(r.z / r.length());
+}
+
 //перевод радиан в градусы
 double rad_to_degrees(const double);
 
@@ -50,9 +62,11 @@ public:
 	matrix _M_() const;
 	friend std::istream& operator>>(std::istream&, matrix&);
 	friend std::ostream& operator<<(std::ostream&, const matrix&);
-	R3 operator[](int col_num) {
+	R3 operator[](const unsigned col_num) const {
 		return { a[col_num], b[col_num], c[col_num] };
 	}
+
+	matrix operator*(const matrix& m) const;
 };
 
 
@@ -159,5 +173,15 @@ inline matrix matrix::_M_() const
 	   (c * a) / V(),
 	   (a * b) / V()
 	};
+}
+
+//Вводим умножение двух матриц, будем использовать в случае поворота кристалла
+ matrix matrix::operator*(const matrix& m) const
+{
+	 return {
+		 {a ^ m[0], a ^ m[1], a ^ m[2] },
+		 {b ^ m[0], b ^ m[1], b ^ m[2] },
+		 {c ^ m[0], c ^ m[1], c ^ m[2] }
+	 };
 }
 
