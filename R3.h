@@ -1,3 +1,4 @@
+//utf-8
 #pragma once
 #include <iostream>
 #include <fstream>
@@ -24,7 +25,16 @@ public:
 
 	friend std::istream& operator>> (std::istream&, R3&);                //перегружаем оператор ввода 
 	friend std::ostream& operator<< (std::ostream&, const R3&);          //перегружаем оператор вывода
+	double operator[] (int el_num) {          //оператор вывода el_num - элемента вектора
+		switch (el_num) {
+		case 0: return x;
+		case 1: return y;
+		case 2: return z;
+		default: return 0.0;  // catch exception ???
+		}
+	}
 };
+
 
 //Функция, возвращающая угол в РАДИАНАХ между векторами a и b
 double phi(const R3& a, const R3& b);
@@ -32,7 +42,7 @@ double phi(const R3& a, const R3& b);
 //перевод радиан в градусы
 double rad_to_degrees(const double);
 
-//структура определяющая базис из трёх векторов { a, b, c }
+//структура определяющая базис из трёх векторов-строк { a, b, c }
 class matrix {
 public:
 	R3 a, b, c;
@@ -40,6 +50,9 @@ public:
 	matrix _M_() const;
 	friend std::istream& operator>>(std::istream&, matrix&);
 	friend std::ostream& operator<<(std::ostream&, const matrix&);
+	R3 operator[](int col_num) {
+		return { a[col_num], b[col_num], c[col_num] };
+	}
 };
 
 
