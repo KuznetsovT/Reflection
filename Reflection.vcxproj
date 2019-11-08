@@ -124,9 +124,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Diffraction.cpp" />
+    <ClCompile Include="Gonio.cpp" />
+    <ClCompile Include="R3.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Diffraction.h" />
+    <ClInclude Include="Gonio.h" />
     <ClInclude Include="R3.h" />
   </ItemGroup>
   <ItemGroup>
