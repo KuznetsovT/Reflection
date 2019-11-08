@@ -7,10 +7,6 @@
 #include <clocale>
 
 
-/*
-	класс векторов в трехмероном пространстве и базисов в пространстве
-	рекомендую предварительно посмотреть файл "R3.h".
-*/
 
 #include "Diffraction.h"
 #include "R3.h"  
@@ -54,6 +50,8 @@ int main(int argn, char* argv[]) {
 	cout << " [ " << rad_to_degrees(delta.first) << " || " << rad_to_degrees(delta.second) << " ] \n";
 	return 0;
 }
+
+
 
 
 //функция считывает матрицу ориентации и hkl с из файла "PATH\\configuration.file"
