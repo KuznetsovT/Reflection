@@ -36,11 +36,11 @@
 class Diff {
 public:
 
-	const static double lam;
+	const static double lam;  //Длина вволны рентгеновского источника, взвешанная MoKa = 2/3 MoKa1 + 1/3 MoKa2, в Ангстремах
 
-	const static R3 k_inc;
+	const static R3 k_inc; // волновой вектор падающего излучения
 
-	static R3 S(const matrix& _M_, hkl);
+	static R3 S(const matrix& _M_, hkl); //Вектор обратного пространства s(hkl)
 
 	static R3 k_diff(const R3& s);     //волновой вектор дифрагировавшего излучения.
 

@@ -8,17 +8,14 @@
 
 
 
-#include "Diffraction.h"
-#include "R3.h"  
-#include "Gonio.h"
+#include "Diffraction.h"       //Собраны воедино все связанные с дифракцией константы и функции
+#include "R3.h"                //класс векторов в пространстве и 3х3 матриц.
+#include "Gonio.h"             //класс, в котором реализовано вращение кристалла в гониометре.
 
 using namespace std;
 
 //функция, считывающая данные из 'configuration.file' из файла по его полному или относительному пути.
 void READ(const char* path_configuration_file, matrix& _M_, double& h, double& k, double& l);
-
-
-
 
 
 
@@ -40,13 +37,13 @@ int main(int argn, char* argv[]) {
 
 	
 	//sin th не может быть по модулю больше единицы!
-	if (abs(Diff::sin_th(_M_, h, k, l)) > 1) {
+	if (fabs(Diff::sin_th(_M_, h, k, l)) > 1) {
 		cout << "|sin th| >1 diffraction doesn't valid!\n";
 		return 0;
 	}
 	cout << "sin th = " << Diff::sin_th(_M_, h, k, l) << endl;
 
-	std::pair<double, double> delta = Gonio(_M_).omega_rotation_angle(h, k, l);
+	std::pair<double, double> delta = Gonio(_M_).rotate_omega(h, k, l);
 	cout << " [ " << rad_to_degrees(delta.first) << " || " << rad_to_degrees(delta.second) << " ] \n";
 	return 0;
 }

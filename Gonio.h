@@ -46,6 +46,7 @@ private:
 
 public:
 
+	//Основной конструктор
 	Gonio(const matrix& _M_);
 
 	//реализуем установки сразу omega, phi, chi.
@@ -69,9 +70,9 @@ public:
 	//функция возвращает true, если возможен поворот по omega,  чтобы кристалл оказался в отражающем положении.
 	bool is_omega_rotation_available(hkl) const;
 
-	//Запишем решение задачи одноосного отражателя. в виде функции omega_rotation_angle(hkl).
+	//Запишем решение задачи одноосного отражателя. в виде функции rotate_omega(hkl).
 	//Обычно существует два решения. Поэтому оба решения мы возвращаем в виде пары. 
-	std::pair<double, double> omega_rotation_angle(hkl) const;
+	std::pair<double, double> rotate_omega(hkl) const;
 };
 
 

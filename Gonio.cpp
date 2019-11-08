@@ -3,6 +3,8 @@
 #include "Diffraction.h"
 #include "R3.h"
 
+
+//Функция, возвращает угол в CФЕРИЧЕСКИХ координатах равный углу поворота вектора в плоскости ху в РАДИАНАХ
 double Gonio::Alpha(const R3& r)
 {
 	return (r.y >= 0) ?  // в направлении tth
@@ -10,15 +12,17 @@ double Gonio::Alpha(const R3& r)
 	    -ang({ r.x, r.y, 0 }, { 1, 0, 0 });
 }
 
+
+//Функция, возвращает угол в СФЕРИЧЕСКИХ координатах, равный углу между вектором и осью z в РАДИАНАХ
 double Gonio::Beta(const R3& r)
 {
 	return acos(r.z / r.length());
 }
 
-
+//Основной Конструктор
 Gonio::Gonio(const matrix& _M_) : _M_(_M_), _M_rotated(_M_) {}
 
-
+//установить omega, phi, chi
 Gonio& Gonio::set(const double omega, const double phi, const double chi) 
 {
 	//Порядок действий: устанавливаем phi, далее устанавливаем chi, далее устанавливаем omega!
@@ -92,14 +96,14 @@ ____k_inc___\|/________\.______\   x
 		//th принадлежит (-Bt; +Bt);
 	*/
 
-
+//Возвращает true, усли поворотом omega можно достичь отражающего положения
 bool Gonio::is_omega_rotation_available(hkl) const
 {
 	return Diff::sin_th(Diff::S(_M_rotated, h, k, l)) <= sin(Beta(Diff::S(_M_, h, k, l)));
 }
 
-
-std::pair<double, double> Gonio::omega_rotation_angle(hkl) const
+//Возвращает пару omega в РАДИАНАХ таких, что при их установке кристал находится в отражающем положении.
+std::pair<double, double> Gonio::rotate_omega(hkl) const
 {
 	const R3 s = Diff::S(_M_rotated, h, k, l);
 	double sin_Bt = sin(Beta(s));
