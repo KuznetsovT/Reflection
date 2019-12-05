@@ -31,4 +31,16 @@ double Diff::sin_th(const R3& s)
 	return lam * s.length() / 2;
 }
 
+//половинный угол между падающим и дифрагирующим лучом в РАДИАНАХ
+double Diff::th(const R3& s)
+{
+	return asin(sin_th(s));
+}
+
+//половинный угол между падающим и дифрагирующим лучом в РАДИАНАХ
+double Diff::th(const matrix& _M_, hkl)
+{
+	return th(S(_M_, h, k, l));
+}
+
 

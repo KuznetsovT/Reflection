@@ -4,7 +4,6 @@
 #include <fstream>
 #include <string>
 #include <cmath>
-#include <clocale>
 
 
 
@@ -30,11 +29,11 @@ int main(int argn, char* argv[]) {
 	if (argn == 1) READ("configuration.file", _M_, h, k, l);   //нет дополнительных аргументов - считываем матрицу ориентации и hkl из configuration.file в текущей папкe
 	else READ(argv[1], _M_, h, k, l);                          //считываем матрицу ориентации и hkl из файл, указанного вторым параметром 
 
-
+	/*
 	M = _M_._M_();    //находим матрицу ориентации в "прямом" пространстве (пространстве объекта)
 	cout << endl << M << endl;
 	cout << M.a.length() << " " << M.b.length() << " " << M.c.length() << endl;
-
+	*/
 	
 	//sin th не может быть по модулю больше единицы!
 	if (fabs(Diff::sin_th(_M_, h, k, l)) > 1) {
@@ -43,8 +42,20 @@ int main(int argn, char* argv[]) {
 	}
 	cout << "sin th = " << Diff::sin_th(_M_, h, k, l) << endl;
 
-	std::pair<double, double> delta = Gonio(_M_).rotate_omega(h, k, l);
-	cout << " [ " << rad_to_degrees(delta.first) << " || " << rad_to_degrees(delta.second) << " ] \n";
+	Gonio g(_M_);
+	cout << "{ ";
+	for (auto d : g.diff_rotation(1, 1, h, k, l)) {
+		cout << "[ " << rad_to_degrees(d.omega) << " " << rad_to_degrees(d.phi) << " " << rad_to_degrees(d.chi) << "]\n";
+	}
+	cout << "}\n";
+
+
+	/*cout << "[ ";
+	for (auto d : g.set_omega(g.diff_rotation(0,0,h, k, l)[0].omega).delta_omega_rotation(h, k, l)) {
+		cout << rad_to_degrees(d.omega) << " ";
+	}
+	cout << "]\n";
+	*/
 	return 0;
 }
 
