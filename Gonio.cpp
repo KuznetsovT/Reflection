@@ -139,7 +139,7 @@ ____k_inc___\|/________\.______\   x
 //Возвращает true, eсли поворотом omega можно достичь отражающего положения
 bool Gonio::is_omega_rotation_available(hkl) const
 {
-	return fabs(Diff::sin_th(Diff::S(_M_rotated, h, k, l))) <= fabs(sin(Beta(Diff::S(_M_, h, k, l))));
+	return abs(Diff::sin_th(Diff::S(_M_rotated, h, k, l))) <= abs(sin(Beta(Diff::S(_M_, h, k, l))));
 }
 
 
@@ -174,25 +174,64 @@ std::vector<Gonio::OPC> Gonio::omega_rotation(hkl) const
 }
 
 
-//Трёхмерная ротация, по данным углам psi, ksi и hkl, выдаём пару троек opc.
-std::vector<Gonio::OPC> Gonio::diff_rotation(const double psi, const double ksi, hkl) const
-{
+
+
+
+
+
+
+
+
+//??????????????????????????????????????????????????????????????????????????????????????????
+//??????????????????????????????????????????????????????????????????????????????????????????
+//??????????????????????????????????????????????????????????????????????????????????????????
+//                                ТРЁХМЕРНЫЙ ОТРАЖАТЕЛЬ
+
+/*
+Данная задача решается в несколько шагов.
+
+1. При данном ksi однозначно восстанавливается z'. Находим z'. 
+	Далее хотим найти тройку opc, чтобы кристалл был в отражающем положении,
+	и чтобы chi был минимален - это соответствует psi = 0.
+	Расскрываем матрицу поворота, видим, что z' зависит только от phi и chi. 
+	Выражаем phi через chi, и определяем минимально возможный chi.
+
+........................ВЫВОД......................................
+
+	z' = sin(phi)*sin(chi)*x - cos(phi)*sin(chi)*y + cos(chi)*z
+	( z' - cos(chi)* z ) / sin(chi) = sin(phi)*[ x ] - cos(phi)*[ y ]
+	[z' - cos(chi) * z]/sin(chi)*sqrt(x^2 + y^2 ) = sin ( phi - КАКОЙ-ТО УГОЛ С ИЗВЕСТНЫМИ СИНУСОМ И КОСИНУСОМ )
+
+	phi = УГОЛ + asin([ z' - cos(chi) * z ]/( sin(chi)*sqrt( x^2 + y^2 ) ) )                            (1)
+	phi = УГОЛ + PI - asin([z' - cos(chi) * z]/( sin(chi)*sqrt( x^2 + y^2 ) ) )
+
+	phi определён если определён АРКСИНУС, то есть
+
+	(z' - cos(chi) * z ) ^2 <= sin(chi)^2*(x^2 + y^2)
+	(cos(chi) * z) ^ 2 + (z')^2 - 2cos(chi)*z*z' <= (x ^ 2 + y ^ 2)(1 - cos ^ 2(chi))
+
+	cos(chi) ^ 2 * (s ^ 2) - 2cos(chi) * (z * z') - (x^2+y^2 - (z') ^ 2) <= 0    ---- РЕШАЕМ КВАДРАТНОЕ УРАВНЕНИЕ
+	cos(chi) = { (z * z') +- sqrt( (z*z') ^ 2 + (s ^ 2) * (x ^ 2 + y * 2 - (z')^2 ) }/s^2
+	cos(chi) = { (z * z') +- sqrt( (s^2 - (z') ^ 2) * (x ^ 2 + y ^ 2)) } / s ^ 2
+
+	получаем, что chi = +-acos({ (z * z') + sqrt( (s^2 - (z') ^ 2) * (x ^ 2 + y ^ 2) ) } / s ^ 2 ),    (2)
+	либо 0, если аргумент аркосинуса больще 1!
+
+	......................................................................
+
+
+2. По формуле (2) в функции Psi0(...) вычисляем chi0 - минимально возможный chi.
+
+3. Далее по формуле (1) находим phi, соответствующий минимально возможному chi.
+
+4. В конце определяется omega, соответствующая phi и chi, данное определяем при помощи одноосного отражателя.
+
+5. Мы нашли opc, соответствующее нулевому psi. Далее записываем матрицу поворота(RM), если бы мы повернули s до совпадения с осью z,
+	повернули s на угол psi, вернули обратно, и далее повернули в отражающее положение. 
+
+	Данная матрица поворота должна соответствовать матрице поворота, записанной в Эйлеровой геометрии, находим omega, phi, chi через матрицу поворота.
 	
-	R3 s = Diff::S(_M_,h, k, l);
-	OPC opc0 = psi0(ksi, h, k, l);
-	R3 s1 = Gonio(_M_).set(opc0).S_rotated(h,k,l);
-
-	//Матрица поворота Матрицы ориентации из начального положения.
-	matrix RM = 
-		OPC_rotation(opc0) * 
-		Z_rotation(-Alpha(s1)) * Y_rotation(-Beta(s1)) * 
-		Z_rotation(-psi) *                                      //вращение psi по часовой стрелке, как и phi
-		Y_rotation(Beta(s1)) * Z_rotation(Alpha(s1));
-
-
-	std::cout << std::endl << "|RM| : \n" << RM << std::endl;
-
-	/*
+	Например,
 	Можно заметить, что cos(chi) = RM[3][3]
 		tg(phi) = -RM[1][3] / RM[2][3]
 		th(omega) = RM[3][1] / RM[3][2]
@@ -200,7 +239,30 @@ std::vector<Gonio::OPC> Gonio::diff_rotation(const double psi, const double ksi,
 		Тогда можно задать chi = +-acos(RM[3][3])
 		Тогда задаётся phi и omega по знакам синуса и косинуса.
 		Остальные уравнения можно использовать для проверки.
-	*/
+
+
+	Полученные углы - искомые.
+
+*/
+
+
+
+
+//Трёхмерная ротация, по данным углам psi, ksi и hkl, выдаём пару троек opc.
+std::vector<Gonio::OPC> Gonio::diff_rotation(const double psi, const double ksi, hkl) const
+{
+	
+	R3 s = Diff::S(_M_,h, k, l);
+	OPC opc0 = psi0(ksi, h, k, l);
+
+	//Матрица поворота Матрицы ориентации из начального положения.
+	matrix RM =
+		Z_rotation(-Alpha(s)) * Y_rotation(-Beta(s)) *
+		Z_rotation(-psi) *                                      //вращение psi по часовой стрелке, как и phi
+		Y_rotation(Beta(s)) * Z_rotation(Alpha(s)) *
+		OPC_rotation(opc0);
+
+	
 	std::vector<OPC> sol;
 	for (auto chi : { acos(RM.c.z), -acos(RM.c.z) }) {
 
@@ -209,77 +271,15 @@ std::vector<Gonio::OPC> Gonio::diff_rotation(const double psi, const double ksi,
 		double omega = arc(RM.c.y/chi, RM.c.x/chi);
 
 		sol.push_back({ omega, phi, chi });
-
-		matrix opc = OPC_rotation({ omega, phi, chi });
-
-		std::cout << "\n |OPC| : \n" << opc << std::endl;
-
-		double diff = 0;
-		for (unsigned i = 0; i < 3; i++) {
-			for (unsigned j = 0; j < 3; j++) {
-				diff += abs(opc[i][j] - RM[i][j]);
-			}
-		}
-		std::cerr << "\nDifferense between Rot Matrixes is : " << diff << std::endl << std::endl;
+		//При проверке показывается, что матрицы действительно совпадают с точностью до точности вычислений
 	}
 	return sol;
 
 }
 
 
-
-
-
-
-
-
-
 //Однозначно восстанавливаем возможные phi по сhi и ksi.
-std::vector<double> Phi_(const double chi,const double ksi, const matrix& m, hkl);
-
-
-
-
-/*
-
-........................ВЫВОД......................................
-
-
-Попробуем посмотреть зависимость phi от chi
-z' = sin(phi)*sin(chi)*x - cos(phi)*sin(chi)*y + cos(chi)*z
-( z' - cos(chi)* z ) / sin(chi) = sin(phi)*[ x ] - cos(phi)*[ y ]
-	[z' - cos(chi) * z]/sin(chi)*sqrt(x^2 + y^2 ) = sin ( phi - КАКОЙ-ТО УГОЛ С ИЗВЕСТНЫМИ СИНУСОМ И КОСИНУСОМ )
-
-	phi = УГОЛ + asin([ z' - cos(chi) * z ]/( sin(chi)*sqrt( x^2 + y^2 ) ) )
-	phi = УГОЛ + PI - asin([z' - cos(chi) * z]/( sin(chi)*sqrt( x^2 + y^2 ) ) )
-
-	phi определён если определён АРКСИНУС, то есть
-
-	(z' - cos(chi) * z ) ^2 <= sin(chi)^2*(x^2 + y^2)
-	(cos(chi) * z) ^ 2 + (z')^2 - 2cos(chi)*z*z' <= (x ^ 2 + y ^ 2)(1 - cos ^ 2(chi))
-
-	cos(chi) ^ 2 * (s ^ 2) - 2cos(chi) * (z * z') - (x^2+y^2 - (z') ^ 2) <= 0    -- - РЕШАЕМ
-
-	cos(chi) = { (z * z') +- sqrt( (z*z') ^ 2 + (s ^ 2) * (x ^ 2 + y * 2 - (z')^2 ) }/s^2
-
-	cos(chi) = { (z * z') +- sqrt( (s^2 - (z') ^ 2) * (x ^ 2 + y ^ 2)) } / s ^ 2
-
-	ПОЛУЧАЕМ, что cos(chi) на пересечении интервалов[-1; 1] и
-	[{ (z* z') - sqrt( (s^2 - (z') ^ 2)* (x ^ 2 + y ^ 2)) } / s ^ 2; { (z * z') + sqrt( (s^2 - (z') ^ 2)* (x ^ 2 + y ^ 2)) } / s ^ 2]
-
-	получаем, что chi = +-acos({ (z * z') + sqrt( (s^2 - (z') ^ 2) * (x ^ 2 + y ^ 2) ) } / s ^ 2 ),
-	либо 0, если аргумент аркосинуса больще 1!
-
-
-
-	СМОТРИТЕ Phi_(...) и Psi0(...)
-*/
-
-
-
-
-
-
+std::vector<double> Phi_(const double chi,const double ksi, const R3 & s);
 
 
 
@@ -288,14 +288,8 @@ Gonio::OPC Gonio::psi0(const double ksi, hkl) const {
 	R3 s = Diff::S(_M_, h, k, l);
 	R3 xy = { s.x, s.y, 0 };
 	
-	//debug
-	//std::cout << "S_rotated should be : " << R3({ -s.length() * Diff::sin_th(s), s.length() * cos(Diff::th(s)) * cos(ksi), s.length() * cos(Diff::th(s)) * sin(ksi) }) << std::endl;
-
-	/*
-	Найдём z' от ksi.
-	
-			| z'| = | sin ksi * cos th * |s| |
-	*/
+	//Найдём z' от ksi.
+	//		| z'| = | sin ksi * cos th * |s| |
 
 	//найдём требуемый Z, он не зависит от Omega, только от phi и chi
 	double z1 = sin(ksi) * abs( cos(Diff::th(s)) * s.length() );
@@ -305,27 +299,20 @@ Gonio::OPC Gonio::psi0(const double ksi, hkl) const {
 
 	//Расскрывая матрицу преобразования, получаем
 	//z' = sin(phi)*sin(chi)*x -cos(phi)*sin(chi)*y+cos(chi)*z
-	//
 	//Выводим зависимость phi от chi, смотрим ОДЗ,
-	//
-	//
 
 	//Условие, что полученный максимальный сos(chi) не пинает chi в комплексную плоскость
-	if (abs((s.z * z1) + sqrt(((s ^ s) - z1 * z1) * (xy ^ xy))) > (s ^ s)) opc0.chi = 0;
-	else opc0.chi = acos(((s.z * z1) + sqrt(((s ^ s) - z1*z1) * (xy ^ xy))) / (s ^ s));
+	if (abs((s.z * z1) + sqrt(((s ^ s) - z1 * z1) * (xy ^ xy))) > (s ^ s)) 
 
-	//std::cout << "OPC0 chi min : " << opc0.chi << std::endl;
-	opc0.phi = Phi_(opc0.chi, ksi, _M_, h, k, l)[0];
-
-	//std::cout << "z1 should be : " << z1 << " and z1 is " << s.x * sin(opc0.phi) * sin(opc0.chi) - s.y * cos(opc0.phi) * sin(opc0.chi) + s.z * cos(opc0.chi) << std::endl;
-
-	auto opc1 =  Gonio(_M_).set(opc0).omega_rotation(h, k, l)[0];
-	//std::cout << " OPC0 [ omega: " << opc1.omega << " phi: " << opc1.phi << " chi: " << opc1.chi << " ]\n";
+		opc0.chi = 0;
+	else 
+		opc0.chi = acos(((s.z * z1) + sqrt(((s ^ s) - z1*z1) * (xy ^ xy))) / (s ^ s));
 
 
-	//std::cout << "Calculated S1 for PSI 0 : " << Gonio(_M_).set(opc1).S_rotated(h, k, l) << std::endl;
+	opc0.phi = Phi_(opc0.chi, ksi, s)[0];
 
-	return opc1;
+	return Gonio(_M_).set(opc0).delta_omega_rotation(h, k, l)[0];
+	
 }
 
 
@@ -334,17 +321,16 @@ Gonio::OPC Gonio::psi0(const double ksi, hkl) const {
 
 
 //Восстанавливаем phi по chi: phi = УГОЛ + PI - asin([z' - cos(chi) * z]/( sin(chi)*sqrt( x^2 + y^2 ) ) )
-std::vector<double> Phi_(const double chi,const double ksi, const matrix& m, hkl)
+std::vector<double> Phi_(const double chi,const double ksi, const R3 & s)
 {
-	R3 s = Diff::S(m, h, k, l);
 	R3 xy = { s.x, s.y, 0 };
-	double z1 = sin(ksi) * abs(cos(Diff::th(m, h, k, l)) * s.length());
+	double z1 = sin(ksi) * abs(cos(Diff::th(s)) * s.length());
 
 	double ang = arc(s.x, s.y);
 
 
 	//Возникла проблема с обработкой значений очень близких к Pi/2
-	double arcsin = (abs((z1 - cos(chi) * s.z) / (sin(chi) * xy.length()) < 1))?
+	double arcsin = (abs((z1 - cos(chi) * s.z) / (sin(chi) * xy.length()) < 1 + DBL_EPSILON))?
 		asin((z1 - cos(chi) * s.z) / (sin(chi) * xy.length())):
 		PI/2;
 

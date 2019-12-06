@@ -42,20 +42,15 @@ int main(int argn, char* argv[]) {
 	}
 	cout << "sin th = " << Diff::sin_th(_M_, h, k, l) << endl;
 
+
 	Gonio g(_M_);
-	cout << "{ ";
-	for (auto d : g.diff_rotation(1, 1, h, k, l)) {
-		cout << "[ " << rad_to_degrees(d.omega) << " " << rad_to_degrees(d.phi) << " " << rad_to_degrees(d.chi) << "]\n";
+	for (double i = 0; i < 2 * PI; i += 0.1) {
+		cout << "ksi = "<< i << " { ";
+		for (auto d : g.diff_rotation(i, 1, h, k, l)) {
+			cout << "[ " << rad_to_degrees(d.omega) << " " << rad_to_degrees(d.phi) << " " << rad_to_degrees(d.chi) << "]\n";
+		}
+		cout << "}\n";
 	}
-	cout << "}\n";
-
-
-	/*cout << "[ ";
-	for (auto d : g.set_omega(g.diff_rotation(0,0,h, k, l)[0].omega).delta_omega_rotation(h, k, l)) {
-		cout << rad_to_degrees(d.omega) << " ";
-	}
-	cout << "]\n";
-	*/
 	return 0;
 }
 
