@@ -27,6 +27,9 @@
     <ClCompile Include="Diffraction.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="Readers.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="R3.h">
@@ -38,9 +41,18 @@
     <ClInclude Include="Diffraction.h">
       <Filter>Исходные файлы</Filter>
     </ClInclude>
+    <ClInclude Include="Readers.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="configuration.file">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="UB.file">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="HKL.file">
       <Filter>Файлы ресурсов</Filter>
     </None>
   </ItemGroup>

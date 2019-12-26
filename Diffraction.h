@@ -31,7 +31,14 @@
 */
 
 //для более удобной и быстрой сокращенной записи 
-#define hkl const double h, const double k, const double l
+
+struct HKL {
+	double h = 0;
+	double k = 0;
+	double l = 0;
+};
+
+
 
 class Diff {
 public:
@@ -40,17 +47,20 @@ public:
 
 	const static R3 k_inc; // волновой вектор падающего излучения
 
-	static R3 S(const matrix& _M_, hkl); //Вектор обратного пространства s(hkl)
+	static R3 S(const matrix& _M_, const HKL &hkl); //Вектор обратного пространства s(hkl)
 
 	static R3 k_diff(const R3& s);     //волновой вектор дифрагировавшего излучения.
 
-	static double sin_th(const matrix& _M_, hkl);   //sin половинного угла между падающим и дифрагировавшим лучом
+	static double sin_th(const matrix& _M_, const HKL& hkl);   //sin половинного угла между падающим и дифрагировавшим лучом
 
 	static double sin_th(const R3& s);             //sin половинного угла между падающим и дифрагировавшем лучом
 
 	static double th(const R3& s);     //половинный угол между падающим и дифрагирующим лучом в РАДИАНАХ
-	static double th(const matrix& _M_, hkl); //половинный угол между падающим и дифрагирующим лучом в РАДИАНАХ
+	static double th(const matrix& _M_, const HKL& hkl); //половинный угол между падающим и дифрагирующим лучом в РАДИАНАХ
 };
+
+
+
 
 
 

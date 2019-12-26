@@ -8,9 +8,9 @@ const double Diff::lam = 0.71073;
 const R3 Diff::k_inc = { 1 / lam, 0.0, 0.0 };   
 
 //Вектор обратного пространства s(hkl)
-R3 Diff::S(const matrix& _M_, hkl)     
+R3 Diff::S(const matrix& _M_,const HKL & hkl)     
 {
-	return _M_.a * h + _M_.b * k + _M_.c * l;
+	return _M_.a * hkl.h + _M_.b * hkl.k + _M_.c * hkl.l;
 }
 
 //волновой вектор дифрагировавшего излучения.
@@ -20,9 +20,9 @@ R3 Diff::k_diff(const R3& s)
 }
 
 //sin половинного угла между падающим и дифрагировавшим лучом
-double Diff::sin_th(const matrix& _M_, hkl)
+double Diff::sin_th(const matrix& _M_, const HKL& hkl)
 {
-	return sin_th(S(_M_, h, k, l));
+	return sin_th(S(_M_, hkl));
 }
 
 //sin половинного угла между падающим и дифрагировавшим лучом
@@ -38,9 +38,9 @@ double Diff::th(const R3& s)
 }
 
 //половинный угол между падающим и дифрагирующим лучом в РАДИАНАХ
-double Diff::th(const matrix& _M_, hkl)
+double Diff::th(const matrix& _M_,const HKL& hkl)
 {
-	return th(S(_M_, h, k, l));
+	return th(S(_M_, hkl));
 }
 
 

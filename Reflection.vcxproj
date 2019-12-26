@@ -127,15 +127,19 @@
     <ClCompile Include="Diffraction.cpp" />
     <ClCompile Include="Gonio.cpp" />
     <ClCompile Include="R3.cpp" />
+    <ClCompile Include="Readers.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Diffraction.h" />
     <ClInclude Include="Gonio.h" />
     <ClInclude Include="R3.h" />
+    <ClInclude Include="Readers.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="configuration.file" />
+    <None Include="HKL.file" />
+    <None Include="UB.file" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

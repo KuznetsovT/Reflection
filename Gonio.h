@@ -78,7 +78,7 @@ public:
 	//функция возвращает повернутый базис, где X' - нормаль к оси кольца, Y' - параллельна оси кольца, Z' - ось держателя!
 	matrix basic() const;
 	matrix M_rotated() const;
-	R3 S_rotated(hkl) const;
+	R3 S_rotated(const HKL &hkl) const;
 
 
 
@@ -87,15 +87,15 @@ public:
 
 
 	//функция возвращает true, если возможен поворот по omega,  чтобы кристалл оказался в отражающем положении.
-	bool is_omega_rotation_available(hkl) const;
+	bool is_omega_rotation_available(const HKL &hkl) const;
 
 
 	//Обычно существует два решения. Поэтому оба решения мы возвращаем в виде пары. 
 	//возвращает насколько нужно повернуть кристалл по omega, чтобы получить отражающее положение.
-	std::vector<Gonio::OPC> delta_omega_rotation(hkl) const;
+	std::vector<Gonio::OPC> delta_omega_rotation(const HKL &hkl) const;
 
 	//возвращает пару omega, до которых нужно поверуть кристалл, чтобы быть в отражающем положении.
-	std::vector<Gonio::OPC> omega_rotation(hkl) const;
+	std::vector<Gonio::OPC> omega_rotation(const HKL &hkl) const;
 
 
 
@@ -108,11 +108,11 @@ public:
 
 
 	//решение задачи трёхосного отражателя
-	std::vector<OPC> diff_rotation(const double psi, const double ksi, hkl) const;
+	std::vector<OPC> diff_rotation(const double psi, const double ksi, const HKL & hkl) const;
 
 
 	//функция, возвращающая OPC для psi = 0 для минимального chi
-	OPC psi0(const double ksi, hkl) const; 
+	OPC psi0(const double ksi,const HKL & hkl) const; 
 
 };
 

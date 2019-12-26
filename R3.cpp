@@ -95,6 +95,11 @@ double rad_to_degrees(const double rad)
 	return (rad * 180 / PI);
 }
 
+double degrees_to_rades(const double deg)
+{
+	return (deg*PI)/180;
+}
+
 //Оператор ввода матрицы 3х3 
 std::istream& operator>>(std::istream& in, matrix& m)
 {

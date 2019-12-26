@@ -109,9 +109,9 @@ matrix Gonio::M_rotated() const
 	return this->_M_rotated;
 }
 
-R3 Gonio::S_rotated(hkl) const
+R3 Gonio::S_rotated(const HKL &hkl) const
 {
-	return Diff::S(_M_rotated, h,k,l);
+	return Diff::S(_M_rotated, hkl);
 }
 
 
@@ -137,19 +137,19 @@ ____k_inc___\|/________\.______\   x
 	*/
 
 //Возвращает true, eсли поворотом omega можно достичь отражающего положения
-bool Gonio::is_omega_rotation_available(hkl) const
+bool Gonio::is_omega_rotation_available(const HKL &hkl) const
 {
-	return abs(Diff::sin_th(Diff::S(_M_rotated, h, k, l))) <= abs(sin(Beta(Diff::S(_M_, h, k, l))));
+	return abs(Diff::sin_th(Diff::S(_M_rotated, hkl))) <= abs(sin(Beta(Diff::S(_M_, hkl))));
 }
 
 
 
 //Возвращает пару delta_omega в РАДИАНАХ таких, что при повороте на delta при данных phi и chi кристал находится в отражающем положении,
-std::vector<Gonio::OPC> Gonio::delta_omega_rotation(hkl) const
+std::vector<Gonio::OPC> Gonio::delta_omega_rotation(const HKL &hkl) const
 {
-	const R3 s = Diff::S(_M_rotated, h, k, l);
+	const R3 s = Diff::S(_M_rotated, hkl);
 	double sin_Bt = sin(Beta(s));
-	double sin_th = Diff::sin_th(_M_rotated, h, k, l);
+	double sin_th = Diff::sin_th(_M_rotated, hkl);
 	//	s находится в отражающем положении, если Gm =PI-th', cos th' = sin th
 	// cos Al = (- sin th/sin Bt)
 
@@ -166,9 +166,9 @@ std::vector<Gonio::OPC> Gonio::delta_omega_rotation(hkl) const
 
 
 //Возвращает, какой omega нужно установить, не меняя phi и chi, чтобы кристал был в отражающем положении.
-std::vector<Gonio::OPC> Gonio::omega_rotation(hkl) const
+std::vector<Gonio::OPC> Gonio::omega_rotation(const HKL &hkl) const
 {
-	auto delta = delta_omega_rotation(h, k, l);
+	auto delta = delta_omega_rotation(hkl);
 	for (unsigned i = 0; i < delta.size(); i++) delta[i].omega += opc.omega;
 	return delta;
 }
@@ -249,11 +249,11 @@ std::vector<Gonio::OPC> Gonio::omega_rotation(hkl) const
 
 
 //Трёхмерная ротация, по данным углам psi, ksi и hkl, выдаём пару троек opc.
-std::vector<Gonio::OPC> Gonio::diff_rotation(const double psi, const double ksi, hkl) const
+std::vector<Gonio::OPC> Gonio::diff_rotation(const double psi, const double ksi, const HKL&hkl) const
 {
 	
-	R3 s = Diff::S(_M_,h, k, l);
-	OPC opc0 = psi0(ksi, h, k, l);
+	R3 s = Diff::S(_M_,hkl);
+	OPC opc0 = psi0(ksi, hkl);
 
 	//Матрица поворота Матрицы ориентации из начального положения.
 	matrix RM =
@@ -284,8 +284,8 @@ std::vector<double> Phi_(const double chi,const double ksi, const R3 & s);
 
 
 //Находим тройку omega, phi, chi, соответствующую минимальному сhi/
-Gonio::OPC Gonio::psi0(const double ksi, hkl) const {
-	R3 s = Diff::S(_M_, h, k, l);
+Gonio::OPC Gonio::psi0(const double ksi,const HKL& hkl) const {
+	R3 s = Diff::S(_M_, hkl);
 	R3 xy = { s.x, s.y, 0 };
 	
 	//Найдём z' от ksi.
@@ -302,7 +302,7 @@ Gonio::OPC Gonio::psi0(const double ksi, hkl) const {
 	//Выводим зависимость phi от chi, смотрим ОДЗ,
 
 	//Условие, что полученный максимальный сos(chi) не пинает chi в комплексную плоскость
-	if (abs((s.z * z1) + sqrt(((s ^ s) - z1 * z1) * (xy ^ xy))) > (s ^ s)) 
+	if (abs(((s.z * z1) + sqrt(((s ^ s) - z1 * z1) * (xy ^ xy))) / (s ^ s)) >= 1)
 
 		opc0.chi = 0;
 	else 
@@ -311,7 +311,7 @@ Gonio::OPC Gonio::psi0(const double ksi, hkl) const {
 
 	opc0.phi = Phi_(opc0.chi, ksi, s)[0];
 
-	return Gonio(_M_).set(opc0).delta_omega_rotation(h, k, l)[0];
+	return Gonio(_M_).set(opc0).delta_omega_rotation(hkl)[0];
 	
 }
 
@@ -328,11 +328,11 @@ std::vector<double> Phi_(const double chi,const double ksi, const R3 & s)
 
 	double ang = arc(s.x, s.y);
 
-
 	//Возникла проблема с обработкой значений очень близких к Pi/2
-	double arcsin = (abs((z1 - cos(chi) * s.z) / (sin(chi) * xy.length()) < 1 + DBL_EPSILON))?
-		asin((z1 - cos(chi) * s.z) / (sin(chi) * xy.length())):
-		PI/2;
+	double _sin_ = (z1 - cos(chi) * s.z) / (sin(chi) * xy.length());
+	double arcsin = (abs(_sin_) < 1) ?
+		asin(_sin_) :
+		((_sin_ > 0) ? PI / 2 : -PI / 2);
 
 	return { ang + arcsin, ang + PI - arcsin };
 }
