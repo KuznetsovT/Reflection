@@ -62,7 +62,7 @@ private:
 	static matrix Z_rotation(double zang);
 
 	//Возвращает матрицу поворота в Эйлеровой геометрии
-	static matrix OPC_rotation(OPC opc);
+	static matrix OPC_matrix(OPC opc);
 
 public:
 

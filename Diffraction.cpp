@@ -16,7 +16,7 @@ R3 Diff::S(const matrix& _M_,const HKL & hkl)
 //волновой вектор дифрагировавшего излучения.
 R3 Diff::k_diff(const R3& s)   
 {
-	return k_inc+s;
+	return k_inc + s;
 }
 
 //sin половинного угла между падающим и дифрагировавшим лучом

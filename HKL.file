@@ -1,3 +1,3 @@
-//s(hkl)      ksi,deg   psi,deg
+//s(hkl)      ksi,deg   psi,deg     type
 
-1.0 2.0 3.0    0.0       180.0
+1 0 0          90          0           10

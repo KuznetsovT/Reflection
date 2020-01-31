@@ -2,6 +2,7 @@
 #pragma once
 #include <iostream>
 #include <fstream>
+#include <cmath>
 #define PI 3.1415926535897932384626433832795    //Википедия, ctrl+C -> ctrl+V
 
 //==================================================================================================================
@@ -50,7 +51,8 @@ class matrix {
 public:
 	R3 a = { 0,0,0 }, b = { 0,0,0 }, c = { 0,0,0 };
 	double V() const;
-	matrix _M_() const;
+	matrix _M_() const; //обрятная матрица
+	matrix T() const;  //транспонирование
 	friend std::istream& operator>>(std::istream&, matrix&);
 	friend std::ostream& operator<<(std::ostream&, const matrix&);
 	R3 operator[](const unsigned col_num) const;

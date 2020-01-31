@@ -86,7 +86,8 @@ std::ostream& operator<<(std::ostream& out, const R3& r)
 //Возвращает угол между двумя векторами в РАДИАНАХ
 double ang(const R3& a, const R3& b)
 {
-	return acos((a ^ b) / (a.length() * b.length()));
+	if (a.length() == 0 || b.length() == 0) return 0;
+	else return acos((a ^ b) / (a.length() * b.length()));
 }
 
 //Перевод рад в градусы
@@ -131,6 +132,11 @@ matrix matrix::_M_() const
 	   (c * a) / V(),
 	   (a * b) / V()
 	};
+}
+
+matrix matrix::T() const
+{
+	return { operator[](0), operator[](1), operator[](2) };
 }
 
 //Оператор, возвращает СТОЛБЕЦ матрицы
