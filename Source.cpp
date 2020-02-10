@@ -148,7 +148,7 @@ void type0(const matrix& _M_, const HKL hkl, const double ksi, const double psi,
 	endeavour << 2*(int)(360 / ksi)+8 << endl;
 	//комментарий для файла
 	endeavour << "ksi trajectory with " << ksi << " deg step" << " !! manualy cropped, in 10th degrees !!" << endl;
-	endeavour << "U -18 -18 -10\nW 18 - 18 - 10\nF - 18 18 - 10\nH - 18 - 18 10\nB - 18 18 10\nB 18 - 18 10\nB 18 18 - 10\nB 18 18 10\n";
+	endeavour << "U -18 -18 -10\nW 18 -18 -10\nF -18 18 -10\nH -18 -18 10\nB -18 18 10\nB 18 -18 10\nB 18 18 -10\nB 18 18 10\n";
 	for (double k = 0; k <= 360; k += ksi) {
 		char flag = 'C';
 		for (auto d : g.diff_rotation(degrees_to_rades(psi), degrees_to_rades(k), hkl)) {
@@ -177,7 +177,7 @@ void type1(const matrix& _M_, const HKL hkl, const double ksi, const double psi,
 	endeavour << 2 * (int)(360 / psi)+8 << endl;
 	//комментарий для файла
 	endeavour << "psi trajectory with " << psi << " deg step" << " !! manualy cropped, in 10th degrees !!" << endl;
-	endeavour << "U -18 -18 -10\nW 18 - 18 - 10\nF - 18 18 - 10\nH - 18 - 18 10\nB - 18 18 10\nB 18 - 18 10\nB 18 18 - 10\nB 18 18 10\n";
+	endeavour << "U -18 -18 -10\nW 18 -18 -10\nF -18 18 -10\nH -18 -18 10\nB -18 18 10\nB 18 -18 10\nB 18 18 -10\nB 18 18 10\n";
 	for (double p = 0; p <= 360; p += psi) {
 		char flag = 'C';
 		for (auto d : g.diff_rotation(degrees_to_rades(p), degrees_to_rades(ksi), hkl)) {
@@ -208,7 +208,7 @@ void type2(const matrix& _M_, const HKL hkl, const double ksi, const double psi,
 	endeavour << 2 * (int)(360 / psi) * 2 * (int)(360/ksi) +8 << endl;
 	//комментарий для файла
 	endeavour << "ksi&psi trajectory with " << ksi<<" & "<< psi << " deg step" << " !! manualy cropped, in 10th degrees !!" << endl;
-	endeavour << "U -18 -18 -10\nW 18 - 18 - 10\nF - 18 18 - 10\nH - 18 - 18 10\nB - 18 18 10\nB 18 - 18 10\nB 18 18 - 10\nB 18 18 10\n";
+	endeavour << "U -18 -18 -10\nW 18 -18 -10\nF -18 18 -10\nH -18 -18 10\nB -18 18 10\nB 18 -18 10\nB 18 18 -10\nB 18 18 10\n";
 	for (double k = 0; k <= 360; k += ksi) {
 		for (double p = 0; p <= 360; p += psi) {
 			char flag = 'C';
@@ -243,7 +243,7 @@ void type_def(const matrix& _M_, const HKL hkl, const double ksi, const double p
 	endeavour << 2+8 << endl;
 	//комментарий для файла
 	endeavour << "position with " << ksi << ' & ' << psi << " !! manualy cropped, in 10th degrees !!" << endl;
-	endeavour << "U -18 -18 -10\nW 18 - 18 - 10\nF - 18 18 - 10\nH - 18 - 18 10\nB - 18 18 10\nB 18 - 18 10\nB 18 18 - 10\nB 18 18 10\n";
+	endeavour << "U -18 -18 -10\nW 18 -18 -10\nF -18 18 -10\nH -18 -18 10\nB -18 18 10\nB 18 -18 10\nB 18 18 -10\nB 18 18 10\n";
 	char flag = 'C';
 	for (auto d : g.diff_rotation(degrees_to_rades(psi), degrees_to_rades(ksi), hkl)) {
 
