@@ -28,7 +28,7 @@ void type_def(const matrix& _M_, const HKL hkl, const double ksi, const double p
 //MAIN
 int main(int argn, char* argv[]) { 
 
-
+	
 	matrix M;      //Матрица ориентации { a, b, c }, все координаты в Ангстремах
 	matrix _M_;    //Определяем матрицу ориентации{  a* b* c* } в ОБРАТНОМ ПРОСТРАНСТВЕ 
 	HKL hkl = { 0, 0, 0 };    //hkl 
@@ -53,19 +53,7 @@ int main(int argn, char* argv[]) {
 	//считываем матрицу ориентации и hkl из файл, указанного вторым параметром 
 
 	
-	//sin th не может быть по модулю больше единицы!
-	//if (fabs(Diff::sin_th(_M_, hkl)) > 1) {
-	//	cout << "|sin th| >1 diffraction doesn't valid!\n";
-	//	return 0;
-	//}
-	//cout << "sin th = " << Diff::sin_th(_M_, hkl) << endl;
 
-
-	/*
-
-	Считываем hkl далее выводим для всех psi или ksi с шагом 1 градус все получаемые opc.
-
-	*/
 
 	cout << "-h- -k- -l- -ksi- psi-  -2theta- [   -omega-   -phi-    -chi-    ]\n\n";
 	Gonio g(_M_);
@@ -151,7 +139,7 @@ void type0(const matrix& _M_, const HKL hkl, const double ksi, const double psi,
 	endeavour << "U -18 -18 -10\nW 18 -18 -10\nF -18 18 -10\nH -18 -18 10\nB -18 18 10\nB 18 -18 10\nB 18 18 -10\nB 18 18 10\n";
 	for (double k = 0; k <= 360; k += ksi) {
 		char flag = 'C';
-		for (auto d : g.diff_rotation(degrees_to_rades(psi), degrees_to_rades(k), hkl)) {
+		for (auto d : g.diff_rotation(degrees_to_rades(psi), degrees_to_rades(k), hkl, Gonio::Euler)) {
 			if (flag == 'C') {
 				endeavour << "C ";
 				flag = 'O';
@@ -180,7 +168,7 @@ void type1(const matrix& _M_, const HKL hkl, const double ksi, const double psi,
 	endeavour << "U -18 -18 -10\nW 18 -18 -10\nF -18 18 -10\nH -18 -18 10\nB -18 18 10\nB 18 -18 10\nB 18 18 -10\nB 18 18 10\n";
 	for (double p = 0; p <= 360; p += psi) {
 		char flag = 'C';
-		for (auto d : g.diff_rotation(degrees_to_rades(p), degrees_to_rades(ksi), hkl)) {
+		for (auto d : g.diff_rotation(degrees_to_rades(p), degrees_to_rades(ksi), hkl, Gonio::Euler)) {
 			if (flag == 'C') {
 				endeavour << "C ";
 				flag = 'O';
@@ -212,7 +200,7 @@ void type2(const matrix& _M_, const HKL hkl, const double ksi, const double psi,
 	for (double k = 0; k <= 360; k += ksi) {
 		for (double p = 0; p <= 360; p += psi) {
 			char flag = 'C';
-			for (auto d : g.diff_rotation(degrees_to_rades(p), degrees_to_rades(k), hkl)) {
+			for (auto d : g.diff_rotation(degrees_to_rades(p), degrees_to_rades(k), hkl, Gonio::Euler)) {
 
 				if (flag == 'C') {
 					endeavour << "C ";
@@ -245,7 +233,7 @@ void type_def(const matrix& _M_, const HKL hkl, const double ksi, const double p
 	endeavour << "position with " << ksi << ' & ' << psi << " !! manualy cropped, in 10th degrees !!" << endl;
 	endeavour << "U -18 -18 -10\nW 18 -18 -10\nF -18 18 -10\nH -18 -18 10\nB -18 18 10\nB 18 -18 10\nB 18 18 -10\nB 18 18 10\n";
 	char flag = 'C';
-	for (auto d : g.diff_rotation(degrees_to_rades(psi), degrees_to_rades(ksi), hkl)) {
+	for (auto d : g.diff_rotation(degrees_to_rades(psi), degrees_to_rades(ksi), hkl, Gonio::Euler)) {
 
 		if (flag == 'C') {
 			endeavour << "C ";

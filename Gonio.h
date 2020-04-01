@@ -31,9 +31,19 @@
 */
 
 
+
+
+//угол между горизонталью и kappa осю в ГРАДУСАХ. Для Эйлеровой геометрии угол можно считать равным 0 градусов.
+constexpr auto GONIO_ALPHA = 50.011414;
+
+//угол между вертикальной осью и карра осью в ГРАДУСАХ. Для Эйлеровой геометрии угол можно считать равным 90 град.
+const double GONIO_THETA = GONIO_ALPHA;
+
+
 //класс, реализующий поворот кристалла в гониометре, использующем Эйлерову геометрию.
 class Gonio {
 public:
+
 
 	//Omega, Phi, Chi
 	struct OPC {
@@ -41,6 +51,20 @@ public:
 		double phi = 0;
 		double chi = 0;
 	};
+
+	//Omega, Phi, Kappa
+	struct OPK {
+		double omega = 0;
+		double phi = 0;
+		double kappa = 0;
+	};
+
+	
+	static std::vector<OPC> Euler(const matrix& RM);
+	static std::vector<OPK> Kappa(const matrix& RM);
+
+	static std::vector<OPC> KappaToEuler(const OPK & opk);
+	static std::vector<OPK> EulerToKappa(const OPC & opc);
 
 private:
 	OPC opc;   //угловые параметры в Эйлеровой геометрии.
@@ -63,6 +87,7 @@ private:
 
 	//Возвращает матрицу поворота в Эйлеровой геометрии
 	static matrix OPC_matrix(OPC opc);
+	static matrix OPK_matrix(OPK opk);
 
 public:
 
@@ -108,13 +133,32 @@ public:
 
 
 	//решение задачи трёхосного отражателя
-	std::vector<OPC> diff_rotation(const double psi, const double ksi, const HKL & hkl) const;
+	template<class container>
+	std::vector<container> diff_rotation(const double psi, const double ksi, const HKL &hkl,
+		std::vector<container>(*de_func)(const matrix &RM)) const;
 
 
+private:
 	//функция, возвращающая OPC для psi = 0 для минимального chi
 	OPC psi0(const double ksi,const HKL & hkl) const; 
 
 };
 
 
+//Трёхмерная ротация, по данным углам psi, ksi и hkl, выдаём пару троек opc.
+template<class container>
+inline std::vector<container> Gonio::diff_rotation(const double psi, const double ksi, const HKL & hkl, std::vector<container>(*de_func)(const matrix &RM)) const
+{
+	
+	R3 s = Diff::S(_M_, hkl);
+	OPC opc0 = psi0(ksi, hkl);
 
+	//Матрица поворота Матрицы ориентации из начального положения.
+	matrix RM = OPC_matrix(opc0)*
+		Z_rotation(Alpha(s))*Y_rotation(Beta(s))*
+		Z_rotation(-psi)* //вращение psi по часовой стрелке, как и phi
+		Y_rotation(-Beta(s))*Z_rotation(-Alpha(s));
+
+
+	return de_func(RM);
+}

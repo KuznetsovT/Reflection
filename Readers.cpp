@@ -109,7 +109,7 @@ void READ(const char* path_configuration_file, matrix& _M_, HKL& hkl, double& ks
 
 		in >> hkl.h >> hkl.k >> hkl.l >> ksi >> psi;
 		if (hkl.h == 0 && hkl.k == 0 && hkl.l == 0) return in.close();
-		for (auto d : g.diff_rotation(degrees_to_rades(psi), degrees_to_rades(ksi), hkl)) {
+		for (auto d : g.diff_rotation(degrees_to_rades(psi), degrees_to_rades(ksi), hkl, Gonio::Euler)) {
 			cout << hkl.h << " " << hkl.k << " " << hkl.l << " " << ksi << " " << psi << "  " << 2 * rad_to_degrees(Diff::th(_M_, hkl))
 				<< "		[   " << rad_to_degrees(d.omega) << "  " << rad_to_degrees(d.phi) << "  " << rad_to_degrees(d.chi) << "	]	\n";
 		}

@@ -150,3 +150,10 @@ matrix matrix::operator*(const matrix& m) const
 	return { a * m, b * m, c * m };
 }
 
+
+//Возвращает угол по его катетам.
+double arc(const double x, const double y)
+{
+	return (y >= 0) ? acos(x / sqrt(y*y + x * x)) : -acos(x / sqrt(y*y + x * x));
+}
+

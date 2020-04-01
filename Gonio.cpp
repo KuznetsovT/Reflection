@@ -1,12 +1,14 @@
 //utf-8
-#include "Gonio.h" 
+
 #include "Diffraction.h"
 #include "R3.h"
+#include "Gonio.h" 
+
 
 #include <iostream>
 
-//Функция возвращает угол от -Pi до Pi по сторонам прямоугольного треугольника
-double arc(const double x, const double y);
+
+
 
 //Функция, возвращает угол в CФЕРИЧЕСКИХ координатах равный углу поворота вектора в плоскости ху в РАДИАНАХ по правилу правой руки
 double Gonio::Alpha(const R3& r)
@@ -26,50 +28,56 @@ double Gonio::Beta(const R3& r)
 
 //Поворот производим по правилу правой руки, в Эйлеровой геометрии поворот по часовой стрелке.
 /*
-     x↓          y↓         z↓
+                            
 { { 1.0,        0.0,       0.0 },
-  { 0.0,  cos(xang), sin(xang) },
-  { 0.0, -sin(xang), cos(xang) } });
+  { 0.0,  cos(xang), -sin(xang) },
+  { 0.0,  sin(xang), cos(xang) } });
 */
 matrix Gonio::X_rotation(double xang)
 {
 	return matrix({ { 1.0,        0.0,       0.0 },
-		    		{ 0.0,  cos(xang), sin(xang) },
-					{ 0.0, -sin(xang), cos(xang) } });
+		    		{ 0.0,  cos(xang),-sin(xang) },
+					{ 0.0,  sin(xang), cos(xang) } });
 }
 
-/*      x↓       y↓      z↓
-{ {  cos(yang), 0.0,-sin(yang) },
+/*      
+{ {  cos(yang), 0.0, sin(yang) },
   {        0.0, 1.0,       0.0 },
-  {  sin(yang), 0.0, cos(yang) } });
+  { -sin(yang), 0.0, cos(yang) } });
 */
 matrix Gonio::Y_rotation(double yang)
 {
-	return matrix({ {  cos(yang), 0.0,-sin(yang) },
+	return matrix({ {  cos(yang), 0.0, sin(yang) },
 					{        0.0, 1.0,       0.0 },
-					{  sin(yang), 0.0, cos(yang) } });
+					{ -sin(yang), 0.0, cos(yang) } });
 }
 
-/*      x↓         y↓       z↓
+/*     
 { {  cos(zang),-sin(zang), 0.0 },
-  { -sin(zang), cos(zang), 0.0 },
+  {  sin(zang), cos(zang), 0.0 },
   {        0.0,       0.0, 1.0 } });
 */
 matrix Gonio::Z_rotation(double zang)
 {
-	return matrix({ {  cos(zang), sin(zang), 0.0 },
-					{ -sin(zang), cos(zang), 0.0 },
+	return matrix({ {  cos(zang),-sin(zang), 0.0 },
+					{  sin(zang), cos(zang), 0.0 },
 					{        0.0,       0.0, 1.0 } });
 }
 
 /*
-{ cos phi, -sin phi, 0}   { 1,       0,        0}   {  cos omega, sin omega, 0}
-{ sin phi,  cos phi, 0} * { 0, cos chi, -sin chi} * { -sin omega, cos omega, 0}
-{       0,        0, 1}   { 0, sin chi,  cos chi}   {          0,         0, 1}
+Матрица поворота
 */
 matrix Gonio::OPC_matrix(OPC opc)
 {
-	return Z_rotation(-opc.phi) * X_rotation(-opc.chi) * Z_rotation(opc.omega);
+	return Z_rotation(opc.omega) * X_rotation(-opc.chi) * Z_rotation(-opc.phi);
+}
+
+
+//матрица поворота в каппа-геометрии.
+matrix Gonio::OPK_matrix(OPK opk)
+{
+	const static  double th = degrees_to_rades(GONIO_THETA);
+	return Z_rotation(opk.omega)*Y_rotation(th)*Z_rotation(-opk.kappa)*Y_rotation(-th)*Z_rotation(-opk.phi);
 }
 
 //Основной Конструктор
@@ -81,7 +89,7 @@ Gonio& Gonio::set(const Gonio::OPC& opc)
 	//Порядок действий: устанавливаем phi, далее устанавливаем chi, далее устанавливаем omega!
 	//Так как ориентация кристалла никак не зависит от порядка действий, мы выполняем поворот самым удобным для нас способом.
 
-	_M_rotated = _M_ * OPC_matrix(opc);
+	_M_rotated = OPC_matrix(opc)*_M_;
 	this->opc = opc;
 	return *this;
 }
@@ -206,11 +214,11 @@ std::vector<Gonio::OPC> Gonio::omega_rotation(const HKL &hkl) const
 	Выражаем phi через chi, и определяем минимально возможный chi.
 
 ........................ВЫВОД......................................
-					R' = R * OPC_matrix
+					R' = OPC_matrix * R
 
-	z' = sin(phi)*sin(chi)*x - cos(phi)*sin(chi)*y + cos(chi)*z
+	z' =  sin(phi)*sin(chi)*x - cos(phi)*sin(chi)*y + cos(chi)*z
 	( z' - cos(chi)* z ) / sin(chi) = sin(phi)*[ x ] - cos(phi)*[ y ]
-	[z' - cos(chi) * z]/sin(chi)*sqrt(x^2 + y^2 ) = sin ( phi - КАКОЙ-ТО УГОЛ С ИЗВЕСТНЫМИ СИНУСОМ И КОСИНУСОМ )
+	[z' - cos(chi) * z]/sin(chi) = sqrt(x^2 + y^2) * sin ( phi - КАКОЙ-ТО УГОЛ С ИЗВЕСТНЫМИ СИНУСОМ И КОСИНУСОМ )
 
 	phi = УГОЛ + asin([ z' - cos(chi) * z ]/( sin(chi)*sqrt( x^2 + y^2 ) ) )                            (1)
 	phi = УГОЛ + PI - asin([z' - cos(chi) * z]/( sin(chi)*sqrt( x^2 + y^2 ) ) )
@@ -258,70 +266,19 @@ std::vector<Gonio::OPC> Gonio::omega_rotation(const HKL &hkl) const
 
 
 
-//Трёхмерная ротация, по данным углам psi, ksi и hkl, выдаём пару троек opc.
-std::vector<Gonio::OPC> Gonio::diff_rotation(const double psi, const double ksi, const HKL&hkl) const
-{
-	
-	R3 s = Diff::S(_M_,hkl);
-	OPC opc0 = psi0(ksi, hkl);
-
-	//Матрица поворота Матрицы ориентации из начального положения.
-	matrix RM =
-		Z_rotation(-Alpha(s)) * Y_rotation(-Beta(s)) *
-		Z_rotation(-psi) *                                      //вращение psi по часовой стрелке, как и phi
-		Y_rotation(Beta(s)) * Z_rotation(Alpha(s)) *
-		OPC_matrix(opc0);
-
-	
-	std::vector<OPC> sol;
-	for (auto chi : { acos(RM.c.z), -acos(RM.c.z) }) {
-		
-		double phi=0;
-		double omega=0;
-
-		//дополнительно нужно рассмотреть случай, когда sin(chi) == 0
-		
-		if (abs(sin(chi)) <= 20*DBL_EPSILON) {
-			phi = /*ANY NUMBER, но мы возьмём */0;
-		}
-		else {
-			phi = (sin(chi) >= 0) ? arc(-RM.b.z, RM.a.z) : arc(+RM.b.z, -RM.a.z);
-		}
 
 
 
-
-
-		if (abs(sin(chi)) <= 20*DBL_EPSILON) {
-			omega = arc(RM.a.x, RM.a.y);
-		}
-		else {
-			omega = (sin(chi) >= 0) ? arc(RM.c.y, -RM.c.x) : arc(-RM.c.y, +RM.c.x);
-		}
-
-		
-
-		sol.push_back({ omega, phi, chi });
-		/*
-		//При проверке показывается, что матрицы действительно совпадают с точностью до точности вычислений
-		using namespace std;
-		cout << "\n sin( chi ) : " << sin(chi) << endl;
-		cerr << "__RM__:\n" << RM << endl << endl;
-		cerr << "__OPC_:\n" << OPC_matrix({ omega, phi, chi }) << endl << endl;
-		*/
-	}
-	return sol;
-
-}
-
-
-//Однозначно восстанавливаем возможные phi по сhi и ksi.
-std::vector<double> Phi_(const double chi,const double ksi, const R3 & s);
 
 
 
 //Находим тройку omega, phi, chi, соответствующую минимальному сhi/
 Gonio::OPC Gonio::psi0(const double ksi,const HKL& hkl) const {
+
+
+	//Однозначно восстанавливаем возможные phi по сhi и ksi.
+	std::vector<double> Phi_(const double chi, const double ksi, const R3 & s);
+
 	R3 s = Diff::S(_M_, hkl);
 	R3 xy = { s.x, s.y, 0 };
 	
@@ -394,9 +351,173 @@ std::vector<double> Phi_(const double chi,const double ksi, const R3 & s)
 }
 
 
-
-//Возвращает угол по его катетам.
-double arc(const double x, const double y)
+std::vector<Gonio::OPC> Gonio::Euler(const matrix & RM)
 {
-	return (y >= 0) ? acos(x / sqrt(y*y + x*x)) : -acos(x / sqrt(y*y + x*x));
+	std::vector<OPC> sol;
+	for (auto chi : { acos(RM.c.z), -acos(RM.c.z) }) {
+
+		double phi = 0;
+		double omega = 0;
+
+		//дополнительно нужно рассмотреть случай, когда sin(chi) == 0
+		if (abs(sin(chi)) <= 20 * DBL_EPSILON) { 
+			
+			if (cos(chi) > 0) {
+
+				phi = /*ANY NUMBER, но мы возьмём */0;
+				omega = arc(RM.a.x + RM.b.y, RM.b.x - RM.a.y);     //вместе дают линейную комбинацию phi - omega = const
+				//для увеличения точности используем оба значения. RM.a.x = RM.b.y=cos omega; RM.b.x = -RM.a.y = sin omega
+			}
+			else {
+				phi = /*ANY NUMBER, но мы возьмём */0;
+				omega = arc(RM.a.x - RM.b.y, -RM.b.x - RM.a.y);     //вместе дают линейную комбинацию phi - omega = const
+				//для увеличения точности используем оба значения. RM.a.x = -RM.b.y=cos omega; -RM.b.x = -RM.a.y = sin omega
+			}
+		}
+		else { 
+			
+			phi = (sin(chi) >= 0) ? arc(-RM.c.y, +RM.c.x) : arc(+RM.c.y, -RM.c.x);   
+			omega = (sin(chi) >= 0) ? arc(+RM.b.z, -RM.a.z) : arc(-RM.b.z, +RM.a.z);
+		}
+
+
+		sol.push_back({ omega, phi, chi });
+		
+		////При проверке показывается, что матрицы действительно совпадают с точностью до точности вычислений
+		//using namespace std;
+		//cout << "\n sin( chi ) : " << sin(chi) << endl;
+		//cerr << "__RM__:\n" << RM << endl << endl;
+		//cerr << "__OPC_:\n" << OPC_matrix({ omega, phi, chi }) << endl << endl;
+		//
+	}
+	return sol;
+}
+
+
+std::vector<Gonio::OPK> Gonio::Kappa(const matrix & RM)
+{
+	
+
+	const static double th = degrees_to_rades(GONIO_THETA);
+	std::vector<OPK> sol;
+
+	double cos_kappa = (RM.c.z - cos(th)*cos(th)) / (sin(th)*sin(th));
+
+	//обрабатываем возможные ошибки округления
+	if (abs(cos_kappa) > 1 && abs(cos_kappa)-1 < 10*DBL_EPSILON) cos_kappa = 1;
+
+	for (auto kappa : { acos(cos_kappa), -acos(cos_kappa) }) {
+
+		double phi = 0;
+		double omega = 0;
+
+		//дополнительно нужно рассмотреть случай, когда detсисткмы будет нулевой
+		if (abs(sin(kappa)) <= 1E-7 && abs((cos_kappa-1))<= 1E-7) {
+
+			//значит sk=0, ck=1 -> вращение только в omega+phi плоскости.
+			phi = /*ANY NUMBER, но мы возьмём */0;
+			omega = arc(RM.a.x + RM.b.y, RM.b.x-RM.a.y);     //вместе дают линейную комбинацию phi - omega = const
+			//для увеличения точности используем оба значения. RM.a.x = RM.b.y=cos omega; RM.b.x = -RM.a.y = sin omega
+		}
+		else {
+
+			{
+				//пусть k1 = (сk-1)ca*sa, k2 = sa*sk
+
+				//составляем систему уравнений
+				//  (-k1  k2) (cp)  =  (RM.c.x)
+				//  (-k2 -k1) (sp)  =  (RM.c.y)
+
+				//решаем крамером
+				//  cp =    det({1,      0,  0}      det({1,  0,  0}
+				//              {0, RM.c.x, k2}   /      {0,-k1, k2}
+				//              {0, RM.c.y,-k1})         {0,-k2,-k1})
+
+				//  sp =    det({1,      0,  0}      det({1,  0,  0}
+				//              {0,-k1, RM.c.x}   /      {0,-k1, k2}
+				//              {0,-k2, RM.c.y})         {0,-k2,-k1})
+				//доп проверка на ненулевой det системы уже проведена
+
+				const double k1 = (cos(kappa) - 1) * cos(th)*sin(th);
+				const double k2 = sin(th)*sin(kappa);
+
+				const double cp = matrix({{1,      0,  0},
+									      {0, RM.c.x, k2},
+									      {0, RM.c.y,-k1} }).V()
+								  /
+								  matrix({{ 1,  0,  0},
+								  	      { 0,-k1, k2},
+										  { 0,-k2,-k1} }).V();
+
+
+				const double sp = matrix({{1,  0,     0},
+									     {0,-k1, RM.c.x},
+									     {0,-k2, RM.c.y} }).V()
+								  /
+								  matrix({ { 1,  0,  0},
+										   { 0,-k1, k2},
+										   { 0,-k2,-k1} }).V();
+
+				phi = arc(cp, sp);
+			}
+			{
+				//составляем систему уравнений
+				//  (-k1 -k2) (co)  =  (RM.a.z)
+				//  ( k2 -k1) (so)  =  (RM.b.z)
+
+				//решаем крамером
+				//  co =    det({1,      0,  0}      det({1,  0,  0}
+				//              {0, RM.a.z,-k2}   /      {0,-k1,-k2}
+				//              {0, RM.b.z,-k1})         {0, k2,-k1})
+				
+				//  so =    det({1,      0,  0}      det({1,  0,  0}
+				//              {0,-k1, RM.a.z}   /      {0,-k1,-k2}
+				//              {0, k2, RM.b.z})         {0, k2,-k1})
+				//доп проверка на ненулевой det системы
+
+				const double k1 = (cos(kappa) - 1) * cos(th)*sin(th);
+				const double k2 = sin(th)*sin(kappa);
+
+				const double co = matrix({{1,     0,  0},
+									     {0, RM.a.z,-k2},
+									     {0, RM.b.z,-k1} }).V() 
+							      /
+							      matrix({{ 1,  0,  0},
+									      { 0,-k1,-k2},
+									      { 0, k2,-k1} }).V();
+
+
+				const double so = matrix({{1,  0,      0},
+									      {0,-k1, RM.a.z},
+									      {0, k2, RM.b.z}}).V()
+							      /
+							      matrix({{ 1,  0,  0},
+									      { 0,-k1,-k2},
+									      { 0, k2,-k1} }).V();
+
+				omega = arc(co, so);
+			}
+		}
+
+
+		sol.push_back({ omega, phi, kappa });
+		
+		////При проверке показывается, что матрицы действительно совпадают с точностью до точности вычислений
+		//using namespace std;
+		//cout << "\n sin( kappa ) : " << sin(kappa) << "	cos( kappa ) : " << cos(kappa) << endl;
+		//cerr << "__RM__:\n" << RM << endl << endl;
+		//cerr << "__OPK__:\n" << OPK_matrix({ omega, phi, kappa }) << endl << endl;
+		
+	}
+	return sol;
+}
+
+std::vector<Gonio::OPC> Gonio::KappaToEuler(const OPK & opk)
+{
+	return Euler(OPK_matrix(opk));
+}
+
+std::vector<Gonio::OPK> Gonio::EulerToKappa(const OPC & opc)
+{
+	return Kappa(OPC_matrix(opc));
 }

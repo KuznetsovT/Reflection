@@ -60,3 +60,6 @@ public:
 	matrix operator*(const matrix& m) const;
 };
 
+
+//Функция возвращает угол от -Pi до Pi по сторонам прямоугольного треугольника
+double arc(const double x, const double y);
