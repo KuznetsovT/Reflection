@@ -17,10 +17,15 @@ using namespace std;
 
 
 
+//несколько вариантов обхода позиций
 
+//выводит позиции с разными psi с известным шагом
 void type0(const matrix & _M_, const HKL hkl, const double ksi, const double psi, ostream & endeavour);
+//выводит позиции с разными ksi с некоторым шагом
 void type1(const matrix& _M_, const HKL hkl, const double ksi, const double psi, ostream & endeavour);
+//выводит все позиции с шагом psi и шагом ksi
 void type2(const matrix& _M_, const HKL hkl, const double ksi, const double psi, ostream & endeavour);
+//выводит позицию для данного рефлекса
 void type_def(const matrix& _M_, const HKL hkl, const double ksi, const double psi, ostream & endeavour);
 
 
