@@ -124,6 +124,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BOOM_predictor.cpp" />
     <ClCompile Include="Diffraction.cpp" />
     <ClCompile Include="Gonio.cpp" />
     <ClCompile Include="R3.cpp" />

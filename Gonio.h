@@ -4,6 +4,8 @@
 #include "R3.h"
 #include "Diffraction.h"
 #include <vector> //std::vector
+#include <string>
+#include <utility>
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -44,7 +46,6 @@ const double GONIO_THETA = GONIO_ALPHA;
 class Gonio {
 public:
 
-
 	//Omega, Phi, Chi
 	struct OPC {
 		double omega = 0;
@@ -59,12 +60,23 @@ public:
 		double kappa = 0;
 	};
 
+	template<class container>
+	struct Solution {
+		container co;//co ntainer
+		enum Status {
+			infinity, //бесконечное число решений
+			one     //одно решение
+		} count;  //число решений
+	};
 	
-	static std::vector<OPC> Euler(const matrix& RM);
-	static std::vector<OPK> Kappa(const matrix& RM);
+	//класс предсказателя столкновений!!!
+	class BOOM_predictor;
+	
+	static std::vector<Solution<OPC>> Euler(const matrix& RM);
+	static std::vector<Solution<OPK>> Kappa(const matrix& RM);
 
-	static std::vector<OPC> KappaToEuler(const OPK & opk);
-	static std::vector<OPK> EulerToKappa(const OPC & opc);
+	static std::vector<Solution<OPC>> KappaToEuler(const OPK & opk);
+	static std::vector<Solution<OPK>> EulerToKappa(const OPC & opc);
 
 private:
 	OPC opc;   //угловые параметры в Эйлеровой геометрии.
@@ -130,28 +142,30 @@ public:
 
 	//=========================ТРЁХОСНЫЙ ОТРАЖАТЕЛЬ=================================
 
+	
+
 
 
 	//решение задачи трёхосного отражателя
 	template<class container>
-	std::vector<container> diff_rotation(const double psi, const double ksi, const HKL &hkl,
-		std::vector<container>(*de_func)(const matrix &RM)) const;
+	std::vector<Solution<container>> diff_rotation(const double psi, const double ksi, const HKL &hkl,
+		std::vector<Solution<container>>(*de_func)(const matrix &RM)) const;
 
 
 private:
 	//функция, возвращающая OPC для psi = 0 для минимального chi
-	OPC psi0(const double ksi,const HKL & hkl) const; 
+	Solution<OPC> psi0(const double ksi,const HKL & hkl) const; 
 
 };
 
 
 //Трёхмерная ротация, по данным углам psi, ksi и hkl, выдаём пару троек opc.
 template<class container>
-inline std::vector<container> Gonio::diff_rotation(const double psi, const double ksi, const HKL & hkl, std::vector<container>(*de_func)(const matrix &RM)) const
+inline std::vector<Gonio::Solution<container>> Gonio::diff_rotation(const double psi, const double ksi, const HKL & hkl, std::vector<Solution<container>>(*de_func)(const matrix &RM)) const
 {
 	
 	R3 s = Diff::S(_M_, hkl);
-	OPC opc0 = psi0(ksi, hkl);
+	OPC opc0 = psi0(ksi, hkl).co;
 
 	//Матрица поворота Матрицы ориентации из начального положения.
 	matrix RM = OPC_matrix(opc0)*
@@ -161,4 +175,67 @@ inline std::vector<container> Gonio::diff_rotation(const double psi, const doubl
 
 
 	return de_func(RM);
+}
+
+
+
+
+
+class Gonio::BOOM_predictor
+{
+public:
+	enum Predictions
+	{
+		Impossible, //0
+		Safe,       //1
+		Unsafe,     //2
+		Error = 404
+	};
+
+	BOOM_predictor(double d_theta, double d) : d_theta(d_theta), d(d) {}
+
+	Predictions is_available(const OPC & opc);
+	//int is_available(const OPK & opk) const;
+
+private:
+
+	const double d_theta;
+	const double d;
+	const std::string PATH = "C:\\Users\\yater\\source\\repos\\Reflection\\boom\\";
+
+	std::string file_constructor(const char * geom);
+
+	void find_up_down(const OPC & opc, std::string filename, std::string& up_line, std::string& down_line);
+
+	std::vector<std::pair<double, double>> create_position_data(const std::string & line);
+
+	bool safety_prediction(const OPC & opc, const std::vector<std::pair<double, double>> & up, const std::vector<std::pair<double, double>> & down);
+	bool impossible_prediction(const OPC & opc, const std::vector<std::pair<double, double>> & up, const std::vector<std::pair<double, double>> & down);
+};
+
+
+
+
+Gonio::OPC rad_to_degrees(const Gonio::OPC &);
+Gonio::OPK rad_to_degrees(const Gonio::OPK &);
+
+template<class container>
+Gonio::Solution<container> rad_to_degrees(const Gonio::Solution<container> &);
+
+Gonio::OPC degrees_to_rades(const Gonio::OPC &);
+Gonio::OPK degrees_to_rades(const Gonio::OPK &);
+
+template<class container>
+Gonio::Solution<container> degrees_to_rades(const Gonio::Solution<container> &);
+
+template<class container>
+inline Gonio::Solution<container> rad_to_degrees(const Gonio::Solution<container>& sol)
+{
+	return { rad_to_degrees(sol.co), sol.count };
+}
+
+template<class container>
+inline Gonio::Solution<container> degrees_to_rades(const Gonio::Solution<container>& sol)
+{
+	return { degrees_to_rades(sol.co), sol.count };
 }

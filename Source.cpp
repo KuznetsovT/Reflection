@@ -17,6 +17,7 @@ using namespace std;
 
 
 
+
 //несколько вариантов обхода позиций
 
 //выводит позиции с разными psi с известным шагом
@@ -28,10 +29,60 @@ void type2(const matrix& _M_, const HKL hkl, const double ksi, const double psi,
 //выводит позицию для данного рефлекса
 void type_def(const matrix& _M_, const HKL hkl, const double ksi, const double psi, ostream & endeavour);
 
+int main_program(int argn, char* argv[]);
 
+
+int main(int argn, char*argv[]) {
+
+	//не обращать на это внимания.
+	//это всё debug и связанные вещи
+
+	//смотреть main program!
+
+/*
+	Gonio::BOOM_predictor predictor(0, 35);
+
+	cout << predictor.is_available({ 330,0,0 });
+*/
+
+	/*
+	ifstream in("input.txt");
+	ofstream out("output.txt");
+
+	while (!in.eof()) {
+		string line;
+		getline(in, line);
+		stringstream ss(line);
+		double chi;
+		ss >> chi;
+		out << chi;
+		while (!ss.eof()) {
+			double num = 0;
+			ss >> num;
+			if (num != 0) out << "	" << rad_to_degrees(arc(cos(degrees_to_rades(num)), sin(degrees_to_rades(num))));
+		}
+		out << endl;
+	}*/
+
+
+
+	//for (;;) {
+	//	Gonio::OPC opc, rad_opc;
+	//	cin >> opc.chi >> opc.omega; opc.phi = 0;
+	//	rad_opc = { degrees_to_rades(opc.omega), degrees_to_rades(opc.phi), degrees_to_rades(opc.chi) };
+
+	//	for (auto opk : Gonio::EulerToKappa(rad_opc)) {
+	//		cout << "kappa: " << rad_to_degrees(opk.kappa) << "  omega: " << rad_to_degrees(opk.omega) << "  phi: " << rad_to_degrees(opk.phi) << endl;
+	//	}
+	//	cout << endl;
+	//}
+	//return 0;
+
+	return main_program(argn, argv);
+}
 
 //MAIN
-int main(int argn, char* argv[]) { 
+int main_program(int argn, char* argv[]) { 
 
 	
 	matrix M;      //Матрица ориентации { a, b, c }, все координаты в Ангстремах
@@ -154,8 +205,8 @@ void type0(const matrix& _M_, const HKL hkl, const double ksi, const double psi,
 				flag = 'C';
 			}
 			cout << hkl.h << " " << hkl.k << " " << hkl.l << " " << k << " " << psi << "  " << 2 * rad_to_degrees(Diff::th(_M_, hkl))
-				<< "		[   " << rad_to_degrees(d.omega) << "  " << rad_to_degrees(d.phi) << "  " << rad_to_degrees(d.chi) << "	]	\n";
-			endeavour << rad_to_degrees(d.omega)/10 << "  " << rad_to_degrees(d.phi)/10 << "  " << rad_to_degrees(d.chi)/10 << endl;
+				<< "		[   " << rad_to_degrees(d.co.omega) << "  " << rad_to_degrees(d.co.phi) << "  " << rad_to_degrees(d.co.chi) << "	]	\n";
+			endeavour << rad_to_degrees(d.co.omega)/10 << "  " << rad_to_degrees(d.co.phi)/10 << "  " << rad_to_degrees(d.co.chi)/10 << endl;
 
 		}
 		cout << endl;
@@ -183,9 +234,9 @@ void type1(const matrix& _M_, const HKL hkl, const double ksi, const double psi,
 				flag = 'C';
 			}
 			cout << hkl.h << " " << hkl.k << " " << hkl.l << " " << ksi << " " << p << "  " << 2 * rad_to_degrees(Diff::th(_M_, hkl))
-				<< "		[   " << rad_to_degrees(d.omega) << "  " << rad_to_degrees(d.phi) << "  " << rad_to_degrees(d.chi) << "	]	\n";
+				<< "		[   " << rad_to_degrees(d.co.omega) << "  " << rad_to_degrees(d.co.phi) << "  " << rad_to_degrees(d.co.chi) << "	]	\n";
 
-			endeavour << rad_to_degrees(d.omega)/10 << "  " << rad_to_degrees(d.phi)/10 << "  " << rad_to_degrees(d.chi)/10 << endl;
+			endeavour << rad_to_degrees(d.co.omega)/10 << "  " << rad_to_degrees(d.co.phi)/10 << "  " << rad_to_degrees(d.co.chi)/10 << endl;
 
 		}
 		cout << endl;
@@ -217,9 +268,9 @@ void type2(const matrix& _M_, const HKL hkl, const double ksi, const double psi,
 				}
 
 				cout << hkl.h << " " << hkl.k << " " << hkl.l << " " << k << " " << p << "  " << 2 * rad_to_degrees(Diff::th(_M_, hkl))
-					<< "		[   " << rad_to_degrees(d.omega) << "  " << rad_to_degrees(d.phi) << "  " << rad_to_degrees(d.chi) << "	]	\n";
+					<< "		[   " << rad_to_degrees(d.co.omega) << "  " << rad_to_degrees(d.co.phi) << "  " << rad_to_degrees(d.co.chi) << "	]	\n";
 
-				endeavour << rad_to_degrees(d.omega)/10 << "  " << rad_to_degrees(d.phi)/10 << "  " << rad_to_degrees(d.chi)/10 << endl;
+				endeavour << rad_to_degrees(d.co.omega)/10 << "  " << rad_to_degrees(d.co.phi)/10 << "  " << rad_to_degrees(d.co.chi)/10 << endl;
 			
 			}
 			cout << endl;
@@ -250,9 +301,9 @@ void type_def(const matrix& _M_, const HKL hkl, const double ksi, const double p
 		}
 
 		cout << hkl.h << " " << hkl.k << " " << hkl.l << " " << ksi << " " << psi << "  " << 2 * rad_to_degrees(Diff::th(_M_, hkl))
-			<< "		[   " << rad_to_degrees(d.omega) << "  " << rad_to_degrees(d.phi) << "  " << rad_to_degrees(d.chi) << "	]	\n";
+			<< "		[   " << rad_to_degrees(d.co.omega) << "  " << rad_to_degrees(d.co.phi) << "  " << rad_to_degrees(d.co.chi) << "	]	\n";
 
-		endeavour << rad_to_degrees(d.omega)/10 << "  " << rad_to_degrees(d.phi)/10 << "  " << rad_to_degrees(d.chi)/10 << endl;
+		endeavour << rad_to_degrees(d.co.omega)/10 << "  " << rad_to_degrees(d.co.phi)/10 << "  " << rad_to_degrees(d.co.chi)/10 << endl;
 	}
 	cout << endl;
 }

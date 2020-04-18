@@ -273,7 +273,7 @@ std::vector<Gonio::OPC> Gonio::omega_rotation(const HKL &hkl) const
 
 
 //Находим тройку omega, phi, chi, соответствующую минимальному сhi/
-Gonio::OPC Gonio::psi0(const double ksi,const HKL& hkl) const {
+Gonio::Solution<Gonio::OPC> Gonio::psi0(const double ksi,const HKL& hkl) const {
 
 
 	//Однозначно восстанавливаем возможные phi по сhi и ksi.
@@ -299,7 +299,8 @@ Gonio::OPC Gonio::psi0(const double ksi,const HKL& hkl) const {
 
 		//phi в данном случае можно брать любой!                            
 		opc0.phi = 0;                                        //           ←---------ANY NUMBER
-		return Gonio(_M_).set(opc0).delta_omega_rotation(hkl)[(cos(ksi) >=0)?0:1];
+		return { Gonio(_M_).set(opc0).delta_omega_rotation(hkl)[(cos(ksi) >= 0) ? 0 : 1],
+															Solution<OPC>::Status::infinity };
 	}
 
 	//Расскрывая матрицу преобразования, получаем
@@ -322,7 +323,8 @@ Gonio::OPC Gonio::psi0(const double ksi,const HKL& hkl) const {
 
 	
 
-	return Gonio(_M_).set(opc0).delta_omega_rotation(hkl)[(cos(ksi) >= 0) ? 0 : 1];
+	return { Gonio(_M_).set(opc0).delta_omega_rotation(hkl)[(cos(ksi) >= 0) ? 0 : 1],
+															Solution<OPC>::Status::one };
 	
 }
 
@@ -351,37 +353,41 @@ std::vector<double> Phi_(const double chi,const double ksi, const R3 & s)
 }
 
 
-std::vector<Gonio::OPC> Gonio::Euler(const matrix & RM)
+std::vector<Gonio::Solution<Gonio::OPC>> Gonio::Euler(const matrix & RM)
 {
-	std::vector<OPC> sol;
+	std::vector<Gonio::Solution<OPC>> sol;
 	for (auto chi : { acos(RM.c.z), -acos(RM.c.z) }) {
 
 		double phi = 0;
 		double omega = 0;
+		Gonio::Solution<OPC>::Status count;
 
 		//дополнительно нужно рассмотреть случай, когда sin(chi) == 0
-		if (abs(sin(chi)) <= 20 * DBL_EPSILON) { 
-			
+		if (abs(sin(chi)) <= 20 * DBL_EPSILON) {
+
 			if (cos(chi) > 0) {
 
 				phi = /*ANY NUMBER, но мы возьмём */0;
 				omega = arc(RM.a.x + RM.b.y, RM.b.x - RM.a.y);     //вместе дают линейную комбинацию phi - omega = const
 				//для увеличения точности используем оба значения. RM.a.x = RM.b.y=cos omega; RM.b.x = -RM.a.y = sin omega
+				count = Gonio::Solution<Gonio::OPC>::Status::infinity;
 			}
 			else {
 				phi = /*ANY NUMBER, но мы возьмём */0;
 				omega = arc(RM.a.x - RM.b.y, -RM.b.x - RM.a.y);     //вместе дают линейную комбинацию phi - omega = const
 				//для увеличения точности используем оба значения. RM.a.x = -RM.b.y=cos omega; -RM.b.x = -RM.a.y = sin omega
+				count = Gonio::Solution<OPC>::Status::infinity;
 			}
 		}
-		else { 
-			
-			phi = (sin(chi) >= 0) ? arc(-RM.c.y, +RM.c.x) : arc(+RM.c.y, -RM.c.x);   
+		else {
+
+			phi = (sin(chi) >= 0) ? arc(-RM.c.y, +RM.c.x) : arc(+RM.c.y, -RM.c.x);
 			omega = (sin(chi) >= 0) ? arc(+RM.b.z, -RM.a.z) : arc(-RM.b.z, +RM.a.z);
+			count = Gonio::Solution<OPC>::Status::one;
 		}
+		
 
-
-		sol.push_back({ omega, phi, chi });
+		sol.push_back({ { omega, phi, chi }, count });
 		
 		////При проверке показывается, что матрицы действительно совпадают с точностью до точности вычислений
 		//using namespace std;
@@ -394,12 +400,12 @@ std::vector<Gonio::OPC> Gonio::Euler(const matrix & RM)
 }
 
 
-std::vector<Gonio::OPK> Gonio::Kappa(const matrix & RM)
+std::vector<Gonio::Solution<Gonio::OPK>> Gonio::Kappa(const matrix & RM)
 {
 	
 
 	const static double th = degrees_to_rades(GONIO_THETA);
-	std::vector<OPK> sol;
+	std::vector<Gonio::Solution<Gonio::OPK>> sol;
 
 	double cos_kappa = (RM.c.z - cos(th)*cos(th)) / (sin(th)*sin(th));
 
@@ -410,6 +416,7 @@ std::vector<Gonio::OPK> Gonio::Kappa(const matrix & RM)
 
 		double phi = 0;
 		double omega = 0;
+		Gonio::Solution<Gonio::OPK>::Status count;
 
 		//дополнительно нужно рассмотреть случай, когда detсисткмы будет нулевой
 		if (abs(sin(kappa)) <= 1E-7 && abs((cos_kappa-1))<= 1E-7) {
@@ -418,6 +425,7 @@ std::vector<Gonio::OPK> Gonio::Kappa(const matrix & RM)
 			phi = /*ANY NUMBER, но мы возьмём */0;
 			omega = arc(RM.a.x + RM.b.y, RM.b.x-RM.a.y);     //вместе дают линейную комбинацию phi - omega = const
 			//для увеличения точности используем оба значения. RM.a.x = RM.b.y=cos omega; RM.b.x = -RM.a.y = sin omega
+			count = Gonio::Solution<Gonio::OPK>::Status::infinity;
 		}
 		else {
 
@@ -497,10 +505,11 @@ std::vector<Gonio::OPK> Gonio::Kappa(const matrix & RM)
 
 				omega = arc(co, so);
 			}
+			count = Solution<OPK>::one;
 		}
 
 
-		sol.push_back({ omega, phi, kappa });
+		sol.push_back({ { omega, phi, kappa }, count });
 		
 		////При проверке показывается, что матрицы действительно совпадают с точностью до точности вычислений
 		//using namespace std;
@@ -512,12 +521,32 @@ std::vector<Gonio::OPK> Gonio::Kappa(const matrix & RM)
 	return sol;
 }
 
-std::vector<Gonio::OPC> Gonio::KappaToEuler(const OPK & opk)
+std::vector<Gonio::Solution<Gonio::OPC>> Gonio::KappaToEuler(const OPK & opk)
 {
 	return Euler(OPK_matrix(opk));
 }
 
-std::vector<Gonio::OPK> Gonio::EulerToKappa(const OPC & opc)
+std::vector<Gonio::Solution<Gonio::OPK>> Gonio::EulerToKappa(const OPC & opc)
 {
 	return Kappa(OPC_matrix(opc));
+}
+
+Gonio::OPC rad_to_degrees(const Gonio::OPC & opc)
+{
+	return { rad_to_degrees(opc.omega), rad_to_degrees(opc.phi), rad_to_degrees(opc.chi) };
+}
+
+Gonio::OPK rad_to_degrees(const Gonio::OPK & opk)
+{
+	return { rad_to_degrees(opk.omega), rad_to_degrees(opk.phi), rad_to_degrees(opk.kappa) };
+}
+
+Gonio::OPC degrees_to_rades(const Gonio::OPC & opc)
+{
+	return { degrees_to_rades(opc.omega), degrees_to_rades(opc.phi), degrees_to_rades(opc.chi) };
+}
+
+Gonio::OPK degrees_to_rades(const Gonio::OPK & opk)
+{
+	return { degrees_to_rades(opk.omega), degrees_to_rades(opk.phi), degrees_to_rades(opk.kappa) };
 }

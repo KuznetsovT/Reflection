@@ -41,6 +41,7 @@ double ang(const R3& a, const R3& b);
 //перевод радиан в градусы
 double rad_to_degrees(const double);
 
+
 //перевод градусов в радианы
 double degrees_to_rades(const double);
 
